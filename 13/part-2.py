@@ -1,60 +1,30 @@
-a = [list(line) for line in open("12/input", "r").read().splitlines()]
+from functools import cmp_to_key
 
 
-def terrain():
-    grid = dict()
-    for R in range(len(a)):
-        for C in range(len(a[0])):
-            grid[(R, C)] = a[R][C]
-            if a[R][C] == "S":
-                pos = (R, C)
-                grid[(R, C)] = "a"
-            elif a[R][C] == "E":
-                target = (R, C)
-                grid[(R, C)] = "z"
-    return grid, pos, target
+parsed_input = [
+    [eval(line) for line in pair.split("\n")]
+    for pair in open("13/input", "r").read().split("\n\n")
+]
 
 
-def neighbors(pos, visited):
-    dr, dc = [0, 1, 0, -1], [1, 0, -1, 0]
-    R, C = pos
-    neighbors = set()
-    for i in range(4):
-        rr, cc = R + dr[i], C + dc[i]
-        if (rr, cc) in grid.keys() and (rr, cc) not in visited:
-            if grid[(R, C)] >= chr(ord(grid[(rr, cc)]) - 1):
-                neighbors.add((rr, cc))
-    return neighbors
+def compare(left, right):
+    if isinstance(left, int) and isinstance(right, int):
+        return right - left
+    elif isinstance(left, list) and isinstance(right, list):
+        for l_item, r_item in zip(left, right):
+            result = compare(l_item, r_item)
+            if result != 0:
+                return result
+        return len(right) - len(left)
+    elif isinstance(left, list) and isinstance(right, int):
+        return compare(left, [right])
+    elif isinstance(left, int) and isinstance(right, list):
+        return compare([left], right)
+    assert False
 
 
-def dijkstra(pos):
-    path = dict()
-    newnodes = dict()
-    newnodes[pos] = 0
-    while newnodes:
-        (R, C) = min(newnodes, key=newnodes.get)
-        dist = newnodes.pop((R, C))
-        for n in neighbors((R, C), S):
-            changed = False
-            if not changed:
-                newnodes[n] = dist + 1
-        path[(R, C)] = dist
-        grid.pop((R, C))
-        if target in path.keys():
-
-            return path[target]
-
-
-S = dict()
-trails = dict()
-grid, _, target = terrain()
-
-for pos in grid.keys():
-    if grid[pos] == "a":
-        trails[pos] = 1000
-for pos in trails.keys():
-    grid, _, target = terrain()
-    dijkstra_result = dijkstra(pos)
-    if dijkstra_result:
-        trails[pos] = dijkstra_result
-print(min(trails.values()))
+two, six = [[2]], [[6]]
+parsed_input.append([two, six])
+parsed_input = [item for sublist in parsed_input for item in sublist]
+parsed_input.sort(key=cmp_to_key(compare), reverse=True)
+print((parsed_input.index(two) + 1) * (parsed_input.index(six) + 1))
